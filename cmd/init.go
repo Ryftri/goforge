@@ -4,10 +4,11 @@ Copyright © 2025 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	"embed" // 1. Tambahkan package 'embed'
+	"embed"
 	"fmt"
 	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"text/template"
 
@@ -15,7 +16,21 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// 2. Tambahkan baris ini di bawah import
+// PENTING: AGAR EMBED BERHASIL, STRUKTUR FOLDER ANDA HARUS SEPERTI INI:
+//
+// goforge/
+// ├── cmd/
+// │   ├── init.go       <-- File ini
+// │   ├── root.go
+// │   └── templates/    <-- Pindahkan folder templates ke sini
+// │       ├── config.go.tmpl
+// │       ├── config.yaml.tmpl
+// │       ├── go.mod.tmpl
+// │       └── main.go.tmpl
+// ├── go.mod
+// └── main.go
+//
+// Path 'templates/*' di bawah ini bersifat relatif terhadap file init.go ini.
 //
 //go:embed templates/*
 var templateFiles embed.FS
@@ -45,9 +60,25 @@ var initCmd = &cobra.Command{
 		createDirectories(projectName)
 		createFiles(projectName, dbChoice)
 
-		fmt.Println("\n✅ Proyek berhasil dibuat!")
-		fmt.Printf("Langkah selanjutnya:\n  cd %s\n  go mod tidy\n  go run cmd/api/main.go\n", projectName)
+		runGoModTidy(projectName)
+
+		fmt.Println("\n✅ Proyek berhasil dibuat dan semua dependensi telah diinstall!")
+		fmt.Printf("Langkah selanjutnya:\n  cd %s\n  go run cmd/api/main.go\n", projectName)
 	},
+}
+
+// Fungsi baru untuk menjalankan 'go mod tidy'
+func runGoModTidy(projectName string) {
+	fmt.Println("📦 Menginstall dependensi (go mod tidy)...")
+	cmd := exec.Command("go", "mod", "tidy")
+	cmd.Dir = projectName // PENTING: Jalankan perintah di dalam folder proyek baru
+
+	// Tampilkan output dari perintah untuk debugging
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		log.Fatalf("Gagal menjalankan 'go mod tidy': %v\nOutput:\n%s", err, string(output))
+	}
+	fmt.Println("Dependensi berhasil diinstall.")
 }
 
 func init() {
@@ -84,7 +115,7 @@ type TemplateData struct {
 func createFiles(projectName string, dbChoice string) {
 	fmt.Println("📄 Membuat file boilerplate...")
 
-	moduleName := fmt.Sprintf("github.com/Ryftri/%s", projectName) // Ganti dengan user Anda
+	moduleName := fmt.Sprintf("github.com/Ryftri/%s", projectName)
 
 	data := TemplateData{
 		ProjectName: projectName,
@@ -104,13 +135,13 @@ func createFiles(projectName string, dbChoice string) {
 	}
 
 	files := map[string]string{
-		"go.mod":          "templates/go.mod.tmpl",
-		"cmd/api/main.go": "templates/main.go.tmpl",
+		"go.mod":               "templates/go.mod.tmpl",
+		"cmd/api/main.go":      "templates/main.go.tmpl",
+		"config.yaml":          "templates/config.yaml.tmpl",
+		"pkg/config/config.go": "templates/config.go.tmpl",
 	}
 
 	for dest, srcTmpl := range files {
-		// 3. Ubah cara membaca file
-		// Ganti os.ReadFile(srcTmpl) menjadi:
 		tmplContent, err := templateFiles.ReadFile(srcTmpl)
 		if err != nil {
 			log.Fatalf("Gagal membaca template dari embed %s: %v", srcTmpl, err)
