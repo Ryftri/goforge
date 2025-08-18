@@ -1,0 +1,19 @@
+package v1
+
+import (
+	"{{ .ModuleName }}/api/v1/handler"
+	"github.com/gin-gonic/gin"
+)
+
+func SetupRouter(r *gin.Engine, helloHandler *handler.HelloHandler) {
+	api := r.Group("/api/v1")
+	{
+		api.GET("/hello-world", helloHandler.GetHelloWorld)
+
+		// You can add other route groups here later
+		// categories := api.Group("/categories")
+		// {
+		// 	categories.GET("", categoryHandler.GetAllCategories)
+		// }
+	}
+}

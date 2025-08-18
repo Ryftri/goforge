@@ -1,5 +1,5 @@
 /*
-Copyright © 2025 NAME HERE <EMAIL ADDRESS>
+Copyright © 2025 Rayhan Zulfitri <rayhanzulfitri@gmail.com>
 */
 package cmd
 
@@ -45,16 +45,16 @@ var initCmd = &cobra.Command{
 
 		createDirectories(projectName)
 		createFiles(projectName, dbChoice)
-
-		// Replace 'go mod tidy' with the more explicit 'go get'
 		runGoGet(projectName, dbChoice)
+		runGoGenerate(projectName) // Automatically run go generate
 
-		fmt.Println("\n✅ Project created successfully and all dependencies have been installed!")
+		// Update the success message
+		fmt.Println("\n✅ Project ready to run! All dependencies installed and code generated.")
 		fmt.Printf("Next steps:\n  cd %s\n  go run cmd/api/main.go\n", projectName)
 	},
 }
 
-// New function to run 'go get' for each package
+// runGoGet executes 'go get' for each necessary package.
 func runGoGet(projectName string, dbChoice string) {
 	fmt.Println("📦 Installing dependencies (go get)...")
 
@@ -88,6 +88,19 @@ func runGoGet(projectName string, dbChoice string) {
 	}
 
 	fmt.Println("Dependencies installed successfully.")
+}
+
+// runGoGenerate executes 'go generate ./...' to produce the wire_gen.go file.
+func runGoGenerate(projectName string) {
+	fmt.Println("⚙️  Generating dependency injection code (go generate)...")
+	cmd := exec.Command("go", "generate", "./...")
+	cmd.Dir = projectName // Run inside the new project folder
+
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		log.Fatalf("Failed to run 'go generate': %v\nOutput:\n%s", err, string(output))
+	}
+	fmt.Println("Code generation complete.")
 }
 
 func init() {
@@ -137,10 +150,13 @@ func createFiles(projectName string, dbChoice string) {
 	}
 
 	files := map[string]string{
-		"go.mod":               "templates/go.mod.tmpl",
-		"cmd/api/main.go":      "templates/main.go.tmpl",
-		"config.yaml":          "templates/config.yaml.tmpl",
-		"pkg/config/config.go": "templates/config.go.tmpl",
+		"go.mod":                  "templates/go.mod.tmpl",
+		"cmd/api/main.go":         "templates/main.go.tmpl",
+		"cmd/api/wire.go":         "templates/wire.go.tmpl",
+		"config.yaml":             "templates/config.yaml.tmpl",
+		"pkg/config/config.go":    "templates/config.go.tmpl",
+		"api/v1/router.go":        "templates/router.go.tmpl",
+		"api/v1/handler/hello.go": "templates/hello_handler.go.tmpl",
 	}
 
 	for dest, srcTmpl := range files {

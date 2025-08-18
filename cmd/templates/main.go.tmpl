@@ -1,0 +1,26 @@
+package main
+
+import (
+	"log"
+	"{{ .ModuleName }}/pkg/config"
+)
+
+//go:generate wire
+func main() {
+	// Load configuration from config.yaml
+	cfg, err := config.LoadConfig()
+	if err != nil {
+		log.Fatalf("could not load config: %v", err)
+	}
+
+	// Initialize the application using Wire
+	r, err := initializeApp()
+	if err != nil {
+		log.Fatalf("could not initialize app: %v", err)
+	}
+
+	log.Printf("Server starting on port %s", cfg.Server.Port)
+	if err := r.Run(cfg.Server.Port); err != nil {
+		log.Fatalf("failed to run server: %v", err)
+	}
+}
