@@ -30,21 +30,37 @@ var initCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		projectName := args[0]
 
-		dbChoice := ""
-		prompt := &survey.Select{
-			Message: "Select the database you will use:",
-			Options: []string{"PostgreSQL", "MySQL", "Other (manual install)"},
+		// --- Ask for Module Name (New Feature) ---
+		moduleName := ""
+		modulePrompt := &survey.Input{
+			Message: "Enter the Go module name:",
+			Default: fmt.Sprintf("github.com/your-username/%s", projectName),
 		}
-		err := survey.AskOne(prompt, &dbChoice)
+		err := survey.AskOne(modulePrompt, &moduleName)
 		if err != nil {
 			fmt.Println("\nOperation cancelled.")
 			return
 		}
 
-		fmt.Printf("🚀 Creating a new project named: %s with database %s\n", projectName, dbChoice)
+		// --- Ask for Database ---
+		dbChoice := ""
+		dbPrompt := &survey.Select{
+			Message: "Select the database you will use:",
+			Options: []string{"PostgreSQL", "MySQL", "Other (manual install)"},
+		}
+		err = survey.AskOne(dbPrompt, &dbChoice)
+		if err != nil {
+			fmt.Println("\nOperation cancelled.")
+			return
+		}
+
+		fmt.Printf("🚀 Creating a new project named: %s\n", projectName)
+		fmt.Printf("   - Module: %s\n", moduleName)
+		fmt.Printf("   - Database: %s\n", dbChoice)
 
 		createDirectories(projectName)
-		createFiles(projectName, dbChoice)
+		// Pass the moduleName to createFiles
+		createFiles(projectName, dbChoice, moduleName)
 		runGoGet(projectName, dbChoice)
 		runGoGenerate(projectName) // Automatically run go generate
 
@@ -134,12 +150,12 @@ type TemplateData struct {
 	DBDSN       string
 }
 
-func createFiles(projectName string, dbChoice string) {
+// Updated function signature to accept moduleName
+func createFiles(projectName string, dbChoice string, moduleName string) {
 	fmt.Println("📄 Creating boilerplate files...")
-	moduleName := fmt.Sprintf("github.com/Ryftri/%s", projectName)
 	data := TemplateData{
 		ProjectName: projectName,
-		ModuleName:  moduleName,
+		ModuleName:  moduleName, // Use the moduleName from user input
 	}
 	switch dbChoice {
 	case "PostgreSQL":
@@ -151,7 +167,7 @@ func createFiles(projectName string, dbChoice string) {
 	}
 
 	files := map[string]string{
-		".mockery.yaml":           "templates/.mockery.yaml.tmpl", // Added mockery config
+		".mockery.yaml":           "templates/.mockery.yaml.tmpl",
 		"go.mod":                  "templates/go.mod.tmpl",
 		"cmd/api/main.go":         "templates/main.go.tmpl",
 		"cmd/api/wire.go":         "templates/wire.go.tmpl",
