@@ -3,9 +3,14 @@ package main
 import (
 	"log"
 	"{{ .ModuleName }}/pkg/config"
+	"github.com/gin-gonic/gin"
 )
 
 //go:generate wire
+type App struct {
+	Engine *gin.Engine
+}
+
 func main() {
 	// Load configuration from config.yaml
 	cfg, err := config.LoadConfig()
@@ -14,13 +19,14 @@ func main() {
 	}
 
 	// Initialize the application using Wire
-	r, err := initializeApp()
+	app, err := initializeApp()
 	if err != nil {
 		log.Fatalf("could not initialize app: %v", err)
 	}
 
 	log.Printf("Server starting on port %s", cfg.Server.Port)
-	if err := r.Run(cfg.Server.Port); err != nil {
+	// Use app.Engine to run the server
+	if err := app.Engine.Run(cfg.Server.Port); err != nil {
 		log.Fatalf("failed to run server: %v", err)
 	}
 }
