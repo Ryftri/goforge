@@ -109,5 +109,3 @@ After the project is successfully created, everything is ready to go!
     ```sh
     curl http://localhost:8080/api/v1/hello-world
     ```
-    
-[![Buy Me a Coffee](https://img.buymeacoffee.com/button-api/?text=Buy%20me%20a%20coffee&emoji=%E2%98%95&slug=ryftri&button_colour=271f47&font_colour=ffffff&font_family=Poppins&outline_colour=ffffff&coffee_colour=FFDD00)](https://www.buymeacoffee.com/ryftri)
