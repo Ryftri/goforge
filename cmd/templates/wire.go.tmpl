@@ -4,22 +4,19 @@
 package main
 
 import (
-	"{{ .ModuleName }}/api/v1"
-	"{{ .ModuleName }}/api/v1/handler"
-	"github.com/gin-gonic/gin"
+	"{{ .ModuleName }}/internal/config"
+	"{{ .ModuleName }}/internal/handler"
+	"{{ .ModuleName }}/internal/router"
+	"{{ .ModuleName }}/internal/server"
 	"github.com/google/wire"
 )
 
-type App struct {
-	Engine *gin.Engine
-}
-
-func initializeApp() (*App, error) {
+func initializeApp(cfg *config.Config) (*App, error) {
 	wire.Build(
+		server.NewServer,
 		handler.NewHelloHandler,
-		gin.Default,
-		v1.SetupRouter,
-		wire.Struct(new(App), "Engine"),
+		router.NewRouter,
+		wire.Struct(new(App), "*"),
 	)
 	return nil, nil
 }
