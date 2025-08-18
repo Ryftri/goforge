@@ -87,14 +87,6 @@ func runGoGet(projectName string, dbChoice string) {
 		}
 	}
 
-	// Jalankan 'go mod tidy' di akhir untuk merapikan
-	fmt.Println("🧹 Merapikan module (go mod tidy)...")
-	tidyCmd := exec.Command("go", "mod", "tidy")
-	tidyCmd.Dir = projectName
-	if err := tidyCmd.Run(); err != nil {
-		log.Fatalf("Gagal menjalankan 'go mod tidy' di akhir: %v", err)
-	}
-
 	fmt.Println("Dependensi berhasil diinstall.")
 }
 
