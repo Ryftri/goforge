@@ -1,0 +1,20 @@
+//go:build wireinject
+// +build wireinject
+
+package main
+
+import (
+	"{{ .ModuleName }}/api/v1"
+	"{{ .ModuleName }}/api/v1/handler"
+	"github.com/gin-gonic/gin"
+	"github.com/google/wire"
+)
+
+func initializeApp() (*gin.Engine, error) {
+	wire.Build(
+		gin.Default,
+		handler.NewHelloHandler,
+		v1.SetupRouter,
+	)
+	return nil, nil
+}
