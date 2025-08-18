@@ -1,5 +1,5 @@
 /*
-Copyright © 2025 NAME HERE <EMAIL ADDRESS>
+Copyright © 2025 Rayhan Zulfitri <rayhanzulfitri@gmail.com>
 */
 package cmd
 
@@ -32,11 +32,11 @@ var initCmd = &cobra.Command{
 
 		// --- Ask for Module Name (New Feature) ---
 		moduleName := ""
-		modulePrompt := &survey.Input{
+		err := survey.AskOne(&survey.Input{
 			Message: "Enter the Go module name:",
 			Default: fmt.Sprintf("github.com/your-username/%s", projectName),
-		}
-		err := survey.AskOne(modulePrompt, &moduleName)
+		}, &moduleName)
+
 		if err != nil {
 			fmt.Println("\nOperation cancelled.")
 			return
@@ -81,7 +81,6 @@ func runGoGet(projectName string, dbChoice string) {
 		"gorm.io/gorm",
 		"github.com/google/wire/cmd/wire",
 		"github.com/stretchr/testify",
-		"github.com/vektra/mockery/v2/...@latest", // Added mockery
 	}
 
 	// Conditionally add database drivers

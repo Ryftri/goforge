@@ -5,16 +5,16 @@
 formatter: goimports
 
 # The directory where mocks will be generated relative to the interface's directory.
-dir: "{{.InterfaceDir}}/mocks"
+dir: "{{`{{.InterfaceDir}}`}}/mocks"
 
 # The filename for the generated mock.
-filename: "{{.InterfaceName}}.go"
+filename: "{{`{{.InterfaceName}}`}}.go"
 
 # The package name for the generated mocks.
 pkgname: "mocks"
 
 # The struct name for the mock implementation.
-structname: "Mock{{.InterfaceName}}"
+structname: "Mock{{`{{.InterfaceName}}`}}"
 
 # If true, mockery will generate mocks for all interfaces in the targeted packages.
 all: true
