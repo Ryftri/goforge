@@ -16,7 +16,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// Pastikan struktur folder Anda: goforge/cmd/templates/
+// Make sure your folder structure is: goforge/cmd/templates/
 //
 //go:embed templates/*
 var templateFiles embed.FS
@@ -32,33 +32,33 @@ var initCmd = &cobra.Command{
 
 		dbChoice := ""
 		prompt := &survey.Select{
-			Message: "Pilih database yang akan Anda gunakan:",
-			Options: []string{"PostgreSQL", "MySQL", "Lainnya (install manual)"},
+			Message: "Select the database you will use:",
+			Options: []string{"PostgreSQL", "MySQL", "Other (manual install)"},
 		}
 		err := survey.AskOne(prompt, &dbChoice)
 		if err != nil {
-			fmt.Println("\nOperasi dibatalkan.")
+			fmt.Println("\nOperation cancelled.")
 			return
 		}
 
-		fmt.Printf("🚀 Akan membuat proyek baru bernama: %s dengan database %s\n", projectName, dbChoice)
+		fmt.Printf("🚀 Creating a new project named: %s with database %s\n", projectName, dbChoice)
 
 		createDirectories(projectName)
 		createFiles(projectName, dbChoice)
 
-		// Ganti 'go mod tidy' dengan 'go get' yang lebih eksplisit
+		// Replace 'go mod tidy' with the more explicit 'go get'
 		runGoGet(projectName, dbChoice)
 
-		fmt.Println("\n✅ Proyek berhasil dibuat dan semua dependensi telah diinstall!")
-		fmt.Printf("Langkah selanjutnya:\n  cd %s\n  go run cmd/api/main.go\n", projectName)
+		fmt.Println("\n✅ Project created successfully and all dependencies have been installed!")
+		fmt.Printf("Next steps:\n  cd %s\n  go run cmd/api/main.go\n", projectName)
 	},
 }
 
-// Fungsi baru untuk menjalankan 'go get' untuk setiap package
+// New function to run 'go get' for each package
 func runGoGet(projectName string, dbChoice string) {
-	fmt.Println("📦 Menginstall dependensi (go get)...")
+	fmt.Println("📦 Installing dependencies (go get)...")
 
-	// Daftar package yang ingin diinstall
+	// List of packages to install
 	packages := []string{
 		"github.com/gin-gonic/gin",
 		"github.com/spf13/viper",
@@ -67,7 +67,7 @@ func runGoGet(projectName string, dbChoice string) {
 		"github.com/stretchr/testify",
 	}
 
-	// Tambahkan driver database secara kondisional
+	// Conditionally add database drivers
 	switch dbChoice {
 	case "PostgreSQL":
 		packages = append(packages, "gorm.io/driver/postgres")
@@ -75,19 +75,19 @@ func runGoGet(projectName string, dbChoice string) {
 		packages = append(packages, "gorm.io/driver/mysql")
 	}
 
-	// Jalankan 'go get' untuk setiap package
+	// Run 'go get' for each package
 	for _, pkg := range packages {
 		fmt.Printf("   - Installing %s...\n", pkg)
 		cmd := exec.Command("go", "get", pkg)
-		cmd.Dir = projectName // Jalankan di dalam folder proyek baru
+		cmd.Dir = projectName // Run inside the new project folder
 
 		output, err := cmd.CombinedOutput()
 		if err != nil {
-			log.Fatalf("Gagal menjalankan 'go get %s': %v\nOutput:\n%s", pkg, err, string(output))
+			log.Fatalf("Failed to run 'go get %s': %v\nOutput:\n%s", pkg, err, string(output))
 		}
 	}
 
-	fmt.Println("Dependensi berhasil diinstall.")
+	fmt.Println("Dependencies installed successfully.")
 }
 
 func init() {
@@ -95,7 +95,7 @@ func init() {
 }
 
 func createDirectories(projectName string) {
-	fmt.Println("📂 Membuat struktur direktori...")
+	fmt.Println("📂 Creating directory structure...")
 	dirs := []string{
 		"cmd/api",
 		"api/v1/handler",
@@ -109,7 +109,7 @@ func createDirectories(projectName string) {
 	for _, dir := range dirs {
 		path := filepath.Join(projectName, dir)
 		if err := os.MkdirAll(path, 0755); err != nil {
-			log.Fatalf("Error membuat direktori %s: %v\n", path, err)
+			log.Fatalf("Error creating directory %s: %v\n", path, err)
 		}
 	}
 }
@@ -121,7 +121,7 @@ type TemplateData struct {
 }
 
 func createFiles(projectName string, dbChoice string) {
-	fmt.Println("📄 Membuat file boilerplate...")
+	fmt.Println("📄 Creating boilerplate files...")
 	moduleName := fmt.Sprintf("github.com/Ryftri/%s", projectName)
 	data := TemplateData{
 		ProjectName: projectName,
@@ -146,20 +146,20 @@ func createFiles(projectName string, dbChoice string) {
 	for dest, srcTmpl := range files {
 		tmplContent, err := templateFiles.ReadFile(srcTmpl)
 		if err != nil {
-			log.Fatalf("Gagal membaca template dari embed %s: %v", srcTmpl, err)
+			log.Fatalf("Failed to read template from embed %s: %v", srcTmpl, err)
 		}
 		destPath := filepath.Join(projectName, dest)
 		file, err := os.Create(destPath)
 		if err != nil {
-			log.Fatalf("Gagal membuat file %s: %v", destPath, err)
+			log.Fatalf("Failed to create file %s: %v", destPath, err)
 		}
 		defer file.Close()
 		tmpl, err := template.New(dest).Parse(string(tmplContent))
 		if err != nil {
-			log.Fatalf("Gagal mem-parsing template %s: %v", srcTmpl, err)
+			log.Fatalf("Failed to parse template %s: %v", srcTmpl, err)
 		}
 		if err := tmpl.Execute(file, data); err != nil {
-			log.Fatalf("Gagal mengeksekusi template %s: %v", srcTmpl, err)
+			log.Fatalf("Failed to execute template %s: %v", srcTmpl, err)
 		}
 	}
 }
