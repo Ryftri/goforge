@@ -92,4 +92,4 @@ After the project is successfully created, everything is ready to go! You do not
     curl http://localhost:8080/api/v1/hello-world
     ```
 
-<a href="https://www.buymeacoffee.com/ryftri"><img src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=☕&slug=ryftri&button_colour=2a1b55&font_colour=ffffff&font_family=Cookie&outline_colour=ffffff&coffee_colour=FFDD00" /></a>
+<script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js" data-name="bmc-button" data-slug="ryftri" data-color="#171b3b" data-emoji="☕"  data-font="Poppins" data-text="Buy me a coffee" data-outline-color="#ffffff" data-font-color="#ffffff" data-coffee-color="#FFDD00" ></script>
