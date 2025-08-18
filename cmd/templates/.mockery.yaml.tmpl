@@ -1,0 +1,28 @@
+# .mockery.yaml
+# This is a configuration file for mockery, a tool for generating mocks in Go.
+# For more information, visit https://github.com/vektra/mockery
+
+formatter: goimports
+
+# The directory where mocks will be generated relative to the interface's directory.
+dir: "{{.InterfaceDir}}/mocks"
+
+# The filename for the generated mock.
+filename: "{{.InterfaceName}}.go"
+
+# The package name for the generated mocks.
+pkgname: "mocks"
+
+# The struct name for the mock implementation.
+structname: "Mock{{.InterfaceName}}"
+
+# If true, mockery will generate mocks for all interfaces in the targeted packages.
+all: true
+
+# The 'packages' section specifies which Go packages mockery should scan for interfaces.
+# You should update this section to point to the packages containing the interfaces
+# you want to mock in your project.
+packages:
+  # Example: '{{.ModuleName}}/internal/users' or '{{.ModuleName}}/pkg/payment'
+  # We've added a default placeholder based on the generated structure.
+  {{.ModuleName}}/internal/category: {}

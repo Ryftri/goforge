@@ -1,5 +1,5 @@
 /*
-Copyright © 2025 Rayhan Zulfitri <rayhanzulfitri@gmail.com>
+Copyright © 2025 NAME HERE <EMAIL ADDRESS>
 */
 package cmd
 
@@ -65,6 +65,7 @@ func runGoGet(projectName string, dbChoice string) {
 		"gorm.io/gorm",
 		"github.com/google/wire/cmd/wire",
 		"github.com/stretchr/testify",
+		"github.com/vektra/mockery/v2/...@latest", // Added mockery
 	}
 
 	// Conditionally add database drivers
@@ -150,6 +151,7 @@ func createFiles(projectName string, dbChoice string) {
 	}
 
 	files := map[string]string{
+		".mockery.yaml":           "templates/.mockery.yaml.tmpl", // Added mockery config
 		"go.mod":                  "templates/go.mod.tmpl",
 		"cmd/api/main.go":         "templates/main.go.tmpl",
 		"cmd/api/wire.go":         "templates/wire.go.tmpl",
