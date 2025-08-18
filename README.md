@@ -31,7 +31,7 @@ go install github.com/google/wire/cmd/wire@latest
 
 You can install the `goforge` tool with a single command:
 ```sh
-go install github.com/Ryftri/goforge
+go install github.com/Ryftri/goforge@latest
 ```
 This will compile and place the `goforge` binary in your Go bin directory, allowing you to run it from any terminal.
 
