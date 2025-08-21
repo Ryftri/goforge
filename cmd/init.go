@@ -173,7 +173,7 @@ func installDependencies(projectName string, dbChoice string) {
 func runGoGenerate(projectName string) {
 	fmt.Println("⚙️  Generating dependency injection code (go generate)...")
 	// Menjalankan `go generate` pada direktori spesifik untuk menghindari masalah kompilasi
-	cmd := exec.Command("go", "generate", "./internal/server")
+	cmd := exec.Command("wire", "./internal/server")
 	cmd.Dir = projectName // Pastikan perintah dijalankan di dalam direktori proyek baru
 	if output, err := cmd.CombinedOutput(); err != nil {
 		log.Fatalf("Failed to run 'go generate': %v\nOutput:\n%s", err, string(output))
