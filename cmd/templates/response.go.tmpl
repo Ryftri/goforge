@@ -1,0 +1,47 @@
+package util
+
+import (
+	"net/http"
+
+	"{{ .ModuleName }}/internal/model/web"
+	"github.comcom/gin-gonic/gin"
+)
+
+func SendSuccess(c *gin.Context, message string, data interface{}) {
+	c.JSON(http.StatusOK, web.StandardResponse{
+		Success: true,
+		Message: message,
+		Data:    data,
+	})
+}
+
+func SendCreated(c *gin.Context, message string, data interface{}) {
+	c.JSON(http.StatusCreated, web.StandardResponse{
+		Success: true,
+		Message: message,
+		Data:    data,
+	})
+}
+
+func SendBadRequest(c *gin.Context, message string, errors interface{}) {
+	c.JSON(http.StatusBadRequest, web.StandardResponse{
+		Success: false,
+		Message: message,
+		Errors:  errors,
+	})
+}
+
+func SendNotFound(c *gin.Context, message string) {
+	c.JSON(http.StatusNotFound, web.StandardResponse{
+		Success: false,
+		Message: message,
+	})
+}
+
+func SendInternalServerError(c *gin.Context, message string, err error) {
+	c.JSON(http.StatusInternalServerError, web.StandardResponse{
+		Success: false,
+		Message: message,
+		Errors:  err.Error(),
+	})
+}

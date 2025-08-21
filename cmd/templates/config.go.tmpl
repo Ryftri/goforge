@@ -1,24 +1,23 @@
 package config
 
-import (
-	"github.com/spf13/viper"
-)
+import "github.com/spf13/viper"
 
 type Config struct {
-	Server   ServerConfig
-	Database DatabaseConfig
-}
-
-type ServerConfig struct {
-	Port string
-}
-
-type DatabaseConfig struct {
-	DSN string
+	Server struct {
+		Port string `mapstructure:"port"`
+		Mode string `mapstructure:"mode"`
+	} `mapstructure:"server"`
+	Database struct {
+		Host     string `mapstructure:"host"`
+		Port     string `mapstructure:"port"`
+		User     string `mapstructure:"user"`
+		Password string `mapstructure:"password"`
+		DBName   string `mapstructure:"dbname"`
+	} `mapstructure:"database"`
 }
 
 func LoadConfig() (config Config, err error) {
-	viper.AddConfigPath(".")
+	viper.AddConfigPath("./configs")
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
 

@@ -2,31 +2,27 @@ package main
 
 import (
 	"log"
-	"{{ .ModuleName }}/pkg/config"
+	"{{ .ModuleName }}/internal/config"
+	"{{ .ModuleName }}/internal/server"
 	"github.com/gin-gonic/gin"
 )
 
-//go:generate wire
-type App struct {
-	Engine *gin.Engine
-}
-
 func main() {
-	// Load configuration from config.yaml
 	cfg, err := config.LoadConfig()
 	if err != nil {
 		log.Fatalf("could not load config: %v", err)
 	}
 
-	// Initialize the application using Wire
-	app, err := initializeApp()
+	gin.SetMode(cfg.Server.Mode)
+
+	appRouter, err := server.InitializeAPI(cfg)
 	if err != nil {
-		log.Fatalf("could not initialize app: %v", err)
+		log.Fatalf("could not initialize api: %v", err)
 	}
 
-	log.Printf("Server starting on port %s", cfg.Server.Port)
-	// Use app.Engine to run the server
-	if err := app.Engine.Run(cfg.Server.Port); err != nil {
-		log.Fatalf("failed to run server: %v", err)
+	log.Printf("Server running on :%s in %s mode", cfg.Server.Port, cfg.Server.Mode)
+	err = appRouter.Run(":" + cfg.Server.Port)
+	if err != nil {
+		log.Fatalf("could not run server: %v", err)
 	}
 }
