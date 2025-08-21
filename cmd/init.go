@@ -16,37 +16,32 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// Make sure your folder structure is: goforge/cmd/templates/
-//
 //go:embed templates/*
 var templateFiles embed.FS
 
-// initCmd represents the init command
 var initCmd = &cobra.Command{
 	Use:   "init [project-name]",
-	Short: "Initialize a new Go modular monolith project",
-	Long:  `Creates a new project with a predefined modular structure, including API versioning and domain-driven design principles.`,
+	Short: "Initialize a new Go project with a layered architecture",
+	Long:  `Creates a new project with a predefined structure, including a "Hello World" example, ready for you to build upon.`,
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		projectName := args[0]
 
-		// --- Ask for Module Name (New Feature) ---
 		moduleName := ""
 		err := survey.AskOne(&survey.Input{
 			Message: "Enter the Go module name:",
 			Default: fmt.Sprintf("github.com/your-username/%s", projectName),
 		}, &moduleName)
-
 		if err != nil {
 			fmt.Println("\nOperation cancelled.")
 			return
 		}
 
-		// --- Ask for Database ---
 		dbChoice := ""
 		dbPrompt := &survey.Select{
 			Message: "Select the database you will use:",
-			Options: []string{"PostgreSQL", "MySQL", "Other (manual install)"},
+			Options: []string{"PostgreSQL", "MySQL"},
+			Default: "PostgreSQL",
 		}
 		err = survey.AskOne(dbPrompt, &dbChoice)
 		if err != nil {
@@ -59,81 +54,35 @@ var initCmd = &cobra.Command{
 		fmt.Printf("   - Database: %s\n", dbChoice)
 
 		createDirectories(projectName)
-		// Pass the moduleName to createFiles
 		createFiles(projectName, dbChoice, moduleName)
 		runGoGet(projectName, dbChoice)
-		runGoGenerate(projectName) // Automatically run go generate
+		runGoGenerate(projectName)
 
-		// Update the success message
 		fmt.Println("\n✅ Project ready to run! All dependencies installed and code generated.")
 		fmt.Printf("Next steps:\n  cd %s\n  go run cmd/api/main.go\n", projectName)
+		fmt.Printf("Test your endpoint:\n  curl http://localhost:3000/api/v1/hello\n")
 	},
-}
-
-// runGoGet executes 'go get' for each necessary package.
-func runGoGet(projectName string, dbChoice string) {
-	fmt.Println("📦 Installing dependencies (go get)...")
-
-	// List of packages to install
-	packages := []string{
-		"github.com/gin-gonic/gin",
-		"github.com/spf13/viper",
-		"gorm.io/gorm",
-		"github.com/google/wire/cmd/wire",
-		"github.com/stretchr/testify",
-	}
-
-	// Conditionally add database drivers
-	switch dbChoice {
-	case "PostgreSQL":
-		packages = append(packages, "gorm.io/driver/postgres")
-	case "MySQL":
-		packages = append(packages, "gorm.io/driver/mysql")
-	}
-
-	// Run 'go get' for each package
-	for _, pkg := range packages {
-		fmt.Printf("   - Installing %s...\n", pkg)
-		cmd := exec.Command("go", "get", pkg)
-		cmd.Dir = projectName // Run inside the new project folder
-
-		output, err := cmd.CombinedOutput()
-		if err != nil {
-			log.Fatalf("Failed to run 'go get %s': %v\nOutput:\n%s", pkg, err, string(output))
-		}
-	}
-
-	fmt.Println("Dependencies installed successfully.")
-}
-
-// runGoGenerate executes 'go generate ./...' to produce the wire_gen.go file.
-func runGoGenerate(projectName string) {
-	fmt.Println("⚙️  Generating dependency injection code (go generate)...")
-	cmd := exec.Command("go", "generate", "./...")
-	cmd.Dir = projectName // Run inside the new project folder
-
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		log.Fatalf("Failed to run 'go generate': %v\nOutput:\n%s", err, string(output))
-	}
-	fmt.Println("Code generation complete.")
-}
-
-func init() {
-	rootCmd.AddCommand(initCmd)
 }
 
 func createDirectories(projectName string) {
 	fmt.Println("📂 Creating directory structure...")
 	dirs := []string{
 		"cmd/api",
-		"api/v1/handler",
-		"api/v1/request",
-		"api/v1/response",
-		"internal/category",
-		"pkg/config",
-		"pkg/database",
+		"configs",
+		"internal/config",
+		"internal/database",
+		"internal/handler/v1",
+		"internal/logger",
+		"internal/model/domain",
+		"internal/model/web",
+		"internal/repository", // No mocks subdir needed initially
+		"internal/service",
+		"internal/router",
+		"internal/server",
+		"internal/util",
+		"logs",
 		"migrations",
+		"api/v1", // For OpenAPI spec
 	}
 	for _, dir := range dirs {
 		path := filepath.Join(projectName, dir)
@@ -144,36 +93,51 @@ func createDirectories(projectName string) {
 }
 
 type TemplateData struct {
-	ProjectName string
-	ModuleName  string
-	DBDSN       string
+	ModuleName   string
+	DBDriver     string
+	DBImportPath string
 }
 
-// Updated function signature to accept moduleName
 func createFiles(projectName string, dbChoice string, moduleName string) {
 	fmt.Println("📄 Creating boilerplate files...")
 	data := TemplateData{
-		ProjectName: projectName,
-		ModuleName:  moduleName, // Use the moduleName from user input
-	}
-	switch dbChoice {
-	case "PostgreSQL":
-		data.DBDSN = `"host=localhost user=your_user password=your_password dbname=your_dbname port=5432 sslmode=disable"`
-	case "MySQL":
-		data.DBDSN = `"your_user:your_password@tcp(127.0.0.1:3306)/your_dbname?charset=utf8mb4&parseTime=True&loc=Local"`
-	default:
-		data.DBDSN = `"host=localhost user=your_user password=your_password dbname=your_dbname port=5432 sslmode=disable"`
+		ModuleName: moduleName,
 	}
 
+	switch dbChoice {
+	case "PostgreSQL":
+		data.DBDriver = "postgres"
+		data.DBImportPath = "gorm.io/driver/postgres"
+	case "MySQL":
+		data.DBDriver = "mysql"
+		data.DBImportPath = "gorm.io/driver/mysql"
+	}
+
+	// Core application files
 	files := map[string]string{
-		".mockery.yaml":           "templates/.mockery.yaml.tmpl",
-		"go.mod":                  "templates/go.mod.tmpl",
-		"cmd/api/main.go":         "templates/main.go.tmpl",
-		"cmd/api/wire.go":         "templates/wire.go.tmpl",
-		"config.yaml":             "templates/config.yaml.tmpl",
-		"pkg/config/config.go":    "templates/config.go.tmpl",
-		"api/v1/router.go":        "templates/router.go.tmpl",
-		"api/v1/handler/hello.go": "templates/hello_handler.go.tmpl",
+		".gitignore":                              "templates/gitignore.tmpl",
+		".mockery.yaml":                           "templates/mockery.yaml.tmpl",
+		"go.mod":                                  "templates/go.mod.tmpl",
+		"cmd/api/main.go":                         "templates/main.go.tmpl",
+		"configs/config.yaml":                     "templates/config.yaml.tmpl",
+		"internal/config/config.go":               "templates/config.go.tmpl",
+		"internal/database/database.go":           "templates/database.go.tmpl",
+		"internal/handler/v1/hello_handler.go":    "templates/hello_handler.go.tmpl",
+		"internal/logger/logger.go":               "templates/logger.go.tmpl",
+		"internal/model/web/standard_response.go": "templates/standard_response.go.tmpl",
+		"internal/router/router.go":               "templates/router.go.tmpl",
+		"internal/server/wire.go":                 "templates/wire.go.tmpl",
+		"internal/util/response.go":               "templates/response.go.tmpl",
+		"api/v1/openapi.yaml":                     "templates/openapi.yaml.tmpl",
+	}
+
+	// Placeholder files for empty directories
+	placeholders := []string{
+		"logs/.gitkeep",
+		"migrations/.gitkeep",
+		"internal/model/domain/.gitkeep",
+		"internal/repository/.gitkeep",
+		"internal/service/.gitkeep",
 	}
 
 	for dest, srcTmpl := range files {
@@ -187,6 +151,7 @@ func createFiles(projectName string, dbChoice string, moduleName string) {
 			log.Fatalf("Failed to create file %s: %v", destPath, err)
 		}
 		defer file.Close()
+
 		tmpl, err := template.New(dest).Parse(string(tmplContent))
 		if err != nil {
 			log.Fatalf("Failed to parse template %s: %v", srcTmpl, err)
@@ -195,4 +160,54 @@ func createFiles(projectName string, dbChoice string, moduleName string) {
 			log.Fatalf("Failed to execute template %s: %v", srcTmpl, err)
 		}
 	}
+
+	for _, placeholder := range placeholders {
+		destPath := filepath.Join(projectName, placeholder)
+		if _, err := os.Create(destPath); err != nil {
+			log.Fatalf("Failed to create placeholder file %s: %v", destPath, err)
+		}
+	}
+}
+
+func runGoGet(projectName string, dbChoice string) {
+	fmt.Println("📦 Installing dependencies (go get)...")
+	packages := []string{
+		"github.com/gin-gonic/gin",
+		"github.com/spf13/viper",
+		"gorm.io/gorm",
+		"github.com/google/wire/cmd/wire",
+		"github.com/go-playground/validator/v10",
+		"github.com/vektra/mockery/v3",
+	}
+
+	switch dbChoice {
+	case "PostgreSQL":
+		packages = append(packages, "gorm.io/driver/postgres")
+	case "MySQL":
+		packages = append(packages, "gorm.io/driver/mysql")
+	}
+
+	for _, pkg := range packages {
+		fmt.Printf("   - Getting %s...\n", pkg)
+		cmd := exec.Command("go", "get", pkg)
+		cmd.Dir = projectName
+		if output, err := cmd.CombinedOutput(); err != nil {
+			log.Fatalf("Failed to run 'go get %s': %v\nOutput:\n%s", pkg, err, string(output))
+		}
+	}
+	fmt.Println("Dependencies installed successfully.")
+}
+
+func runGoGenerate(projectName string) {
+	fmt.Println("⚙️  Generating dependency injection code (go generate)...")
+	cmd := exec.Command("go", "generate", "./...")
+	cmd.Dir = projectName
+	if output, err := cmd.CombinedOutput(); err != nil {
+		log.Fatalf("Failed to run 'go generate': %v\nOutput:\n%s", err, string(output))
+	}
+	fmt.Println("Code generation complete.")
+}
+
+func init() {
+	rootCmd.AddCommand(initCmd)
 }

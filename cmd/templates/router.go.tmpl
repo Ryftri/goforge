@@ -1,18 +1,23 @@
-package v1
+package router
 
 import (
-	"{{ .ModuleName }}/api/v1/handler"
+	v1 "{{ .ModuleName }}/internal/handler/v1"
 	"github.com/gin-gonic/gin"
 )
 
-// SetupRouter configures the routes and returns the configured gin engine.
-func SetupRouter(r *gin.Engine, helloHandler *handler.HelloHandler) *gin.Engine {
-	api := r.Group("/api/v1")
-	{
-		api.GET("/hello-world", helloHandler.GetHelloWorld)
+// Handlers holds all the handlers that will be injected into the router.
+type Handlers struct {
+	HelloHandler *v1.HelloHandler
+}
 
-		// You can add other route groups here later
+// NewRouter creates and configures a new router.
+func NewRouter(h Handlers) *gin.Engine {
+	router := gin.Default()
+
+	apiV1 := router.Group("/api/v1")
+	{
+		apiV1.GET("/hello", h.HelloHandler.GetHello)
 	}
 
-	return r
+	return router
 }

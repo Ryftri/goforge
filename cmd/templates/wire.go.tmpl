@@ -1,25 +1,26 @@
 //go:build wireinject
 // +build wireinject
 
-package main
+package server
 
 import (
-	"{{ .ModuleName }}/api/v1"
-	"{{ .ModuleName }}/api/v1/handler"
+	"{{ .ModuleName }}/internal/config"
+	"{{ .ModuleName }}/internal/database"
+	v1 "{{ .ModuleName }}/internal/handler/v1"
+	"{{ .ModuleName }}/internal/logger"
+	"{{ .ModuleName }}/internal/router"
 	"github.com/gin-gonic/gin"
 	"github.com/google/wire"
 )
 
-type App struct {
-	Engine *gin.Engine
-}
-
-func initializeApp() *App {
+// initializeAPI initializes the application server.
+func InitializeAPI(cfg config.Config) (*gin.Engine, error) {
 	wire.Build(
-		handler.NewHelloHandler,
-		gin.Default,
-		v1.SetupRouter,
-		wire.Struct(new(App), "Engine"),
+		database.NewGormDB,
+		logger.New,
+		v1.NewHelloHandler,
+		wire.Struct(new(router.Handlers), "*"),
+		router.NewRouter,
 	)
-	return nil
+	return nil, nil
 }

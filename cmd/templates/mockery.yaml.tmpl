@@ -1,0 +1,15 @@
+# .mockery.yaml
+# For more information, visit https://github.com/vektra/mockery
+
+dir: "{{`{{.InterfaceDir}}`}}/mocks"
+filename: "{{`{{.InterfaceName}}`}}.go"
+pkgname: "mocks"
+structname: "Mock{{`{{.InterfaceName}}`}}"
+all: true
+
+# Update this section to point to the packages containing the interfaces
+# you want to mock in your project.
+packages:
+  # Example: {{.ModuleName}}/internal/users
+  # {{.ModuleName}}/internal/service: {}
+  # {{.ModuleName}}/internal/repository: {}
