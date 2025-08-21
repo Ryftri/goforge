@@ -1,6 +1,5 @@
 /*
-Copyright © 2025 NAME HERE <EMAIL ADDRESS>
-
+Copyright © 2025 Rayhan Zulfitri <rayhanzulfitri@gmail.com>
 */
 package cmd
 
@@ -10,18 +9,21 @@ import (
 	"github.com/spf13/cobra"
 )
 
-
-
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "goforge",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
+	Use:   "goloom",
+	Short: "A CLI tool to weave the foundation of your Go projects.",
+	Long: `Go Loom is a project scaffolding tool that weaves together a robust,
+layered architecture for your Go applications. It automates the creation
+of a structured monolith, allowing you to bypass the repetitive setup and
+start developing your business logic immediately.
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+Perfect for developers who believe in starting with a solid foundation
+that can gracefully evolve. Go Loom sets up a clean structure with handlers,
+services, and repositories, letting you focus on building great software.
+
+Example:
+  goloom init my-awesome-project`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	// Run: func(cmd *cobra.Command, args []string) { },
@@ -41,11 +43,9 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 
-	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.goforge.yaml)")
+	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.goloom.yaml)")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
-
-
