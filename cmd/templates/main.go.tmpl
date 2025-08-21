@@ -15,10 +15,8 @@ func main() {
 
 	gin.SetMode(cfg.Server.Mode)
 
-	appRouter, err := server.InitializeAPI(cfg)
-	if err != nil {
-		log.Fatalf("could not initialize api: %v", err)
-	}
+	// The signature from Wire's generated function will no longer return an error.
+	appRouter := server.InitializeAPI(cfg)
 
 	log.Printf("Server running on :%s in %s mode", cfg.Server.Port, cfg.Server.Mode)
 	err = appRouter.Run(":" + cfg.Server.Port)

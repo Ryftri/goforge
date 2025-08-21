@@ -1,0 +1,23 @@
+package service
+
+import "{{ .ModuleName }}/internal/repository"
+
+// HelloService defines the interface for hello business logic.
+type HelloService interface {
+	GetMessage() string
+}
+
+// helloServiceImpl is the concrete implementation of HelloService.
+type helloServiceImpl struct {
+	repo repository.HelloRepository
+}
+
+// NewHelloService creates a new instance of HelloService.
+func NewHelloService(repo repository.HelloRepository) HelloService {
+	return &helloServiceImpl{repo: repo}
+}
+
+// GetMessage retrieves the message from the repository.
+func (s *helloServiceImpl) GetMessage() string {
+	return s.repo.GetHelloMessage()
+}

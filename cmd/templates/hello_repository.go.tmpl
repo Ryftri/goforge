@@ -1,0 +1,21 @@
+package repository
+
+// HelloRepository defines the interface for hello operations.
+type HelloRepository interface {
+	GetHelloMessage() string
+}
+
+// helloRepositoryImpl is the concrete implementation of HelloRepository.
+type helloRepositoryImpl struct {
+	// In the future, this could hold a database connection, e.g., db *gorm.DB
+}
+
+// NewHelloRepository creates a new instance of HelloRepository.
+func NewHelloRepository() HelloRepository {
+	return &helloRepositoryImpl{}
+}
+
+// GetHelloMessage returns a static string.
+func (r *helloRepositoryImpl) GetHelloMessage() string {
+	return "Hello, World, from the Repository layer!"
+}

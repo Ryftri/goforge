@@ -1,18 +1,20 @@
 package v1
 
 import (
+	"{{ .ModuleName }}/internal/service"
 	"{{ .ModuleName }}/internal/util"
 	"github.com/gin-gonic/gin"
 )
 
 type HelloHandler struct {
-	// You can inject services here later
+	helloService service.HelloService
 }
 
-func NewHelloHandler() *HelloHandler {
-	return &HelloHandler{}
+func NewHelloHandler(helloService service.HelloService) *HelloHandler {
+	return &HelloHandler{helloService: helloService}
 }
 
 func (h *HelloHandler) GetHello(c *gin.Context) {
-	util.SendSuccess(c, "Hello, World!", nil)
+	message := h.helloService.GetMessage()
+	util.SendSuccess(c, message, nil)
 }

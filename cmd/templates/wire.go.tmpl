@@ -6,22 +6,33 @@ package server
 
 import (
 	"{{ .ModuleName }}/internal/config"
-	"{{ .ModuleName }}/internal/database"
 	v1 "{{ .ModuleName }}/internal/handler/v1"
-	"{{ .ModuleName }}/internal/logger"
+	"{{ .ModuleName }}/internal/repository"
 	"{{ .ModuleName }}/internal/router"
+	"{{ .ModuleName }}/internal/service"
 	"github.com/gin-gonic/gin"
 	"github.com/google/wire"
 )
 
-// initializeAPI initializes the application server.
-func InitializeAPI(cfg config.Config) (*gin.Engine, error) {
+var helloSet = wire.NewSet(
+	repository.NewHelloRepository,
+	service.NewHelloService,
+	v1.NewHelloHandler,
+)
+
+// InitializeAPI initializes the application server.
+// Note: The return signature is changed to *gin.Engine because no providers return an error.
+func InitializeAPI(cfg config.Config) *gin.Engine {
 	wire.Build(
-		database.NewGormDB,
-		logger.New,
-		v1.NewHelloHandler,
+		// Basic dependencies
+		gin.Default,
+
+		// Hello World module set
+		helloSet,
+
+		// Router setup
 		wire.Struct(new(router.Handlers), "*"),
 		router.NewRouter,
 	)
-	return nil, nil
+	return nil
 }

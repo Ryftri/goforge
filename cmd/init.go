@@ -125,6 +125,8 @@ func createFiles(projectName string, dbChoice string, moduleName string) {
 		"internal/handler/v1/hello_handler.go":    "templates/hello_handler.go.tmpl",
 		"internal/logger/logger.go":               "templates/logger.go.tmpl",
 		"internal/model/web/standard_response.go": "templates/standard_response.go.tmpl",
+		"internal/repository/hello_repository.go": "templates/hello_repository.go.tmpl",
+		"internal/service/hello_service.go":       "templates/hello_service.go.tmpl",
 		"internal/router/router.go":               "templates/router.go.tmpl",
 		"internal/server/wire.go":                 "templates/wire.go.tmpl",
 		"internal/util/response.go":               "templates/response.go.tmpl",
@@ -136,8 +138,6 @@ func createFiles(projectName string, dbChoice string, moduleName string) {
 		"logs/.gitkeep",
 		"migrations/.gitkeep",
 		"internal/model/domain/.gitkeep",
-		"internal/repository/.gitkeep",
-		"internal/service/.gitkeep",
 	}
 
 	for dest, srcTmpl := range files {
