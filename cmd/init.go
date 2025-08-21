@@ -56,9 +56,8 @@ var initCmd = &cobra.Command{
 		createDirectories(projectName)
 		createFiles(projectName, dbChoice, moduleName)
 		installDependencies(projectName, dbChoice)
-		runWire(projectName) // Menggunakan fungsi baru yang lebih spesifik
+		runGoGenerate(projectName) // Diubah ke metode yang lebih baik
 
-		// Pesan sukses yang diperbarui dan lebih jelas
 		fmt.Println("\n✅ Project successfully created and ready to run!")
 		fmt.Println("\nNext steps:")
 		fmt.Printf("  1. cd %s\n", projectName)
@@ -68,6 +67,7 @@ var initCmd = &cobra.Command{
 	},
 }
 
+// ... fungsi createDirectories tidak berubah ...
 func createDirectories(projectName string) {
 	fmt.Println("📂 Creating directory structure...")
 	dirs := []string{
@@ -84,6 +84,7 @@ func createDirectories(projectName string) {
 	}
 }
 
+// ... fungsi createFiles tidak berubah ...
 type TemplateData struct {
 	ModuleName   string
 	DBDriver     string
@@ -135,6 +136,7 @@ func createFiles(projectName string, dbChoice string, moduleName string) {
 	}
 }
 
+// ... fungsi installDependencies tidak berubah ...
 func installDependencies(projectName string, dbChoice string) {
 	fmt.Println("📦 Installing dependencies...")
 	packages := []string{
@@ -167,14 +169,14 @@ func installDependencies(projectName string, dbChoice string) {
 	fmt.Println("Dependencies installed successfully.")
 }
 
-// Menggunakan `wire ./internal/server` seperti yang Anda sarankan.
-func runWire(projectName string) {
-	fmt.Println("⚙️  Generating dependency injection code (wire)...")
-	// Menggunakan `go run` untuk memastikan wire dijalankan dari modul yang benar
-	cmd := exec.Command("go", "run", "github.com/google/wire/cmd/wire", "./internal/server")
-	cmd.Dir = projectName
+// --- FUNGSI YANG DIPERBARUI ---
+func runGoGenerate(projectName string) {
+	fmt.Println("⚙️  Generating dependency injection code (go generate)...")
+	// Menjalankan `go generate` pada direktori spesifik untuk menghindari masalah kompilasi
+	cmd := exec.Command("go", "generate", "./internal/server")
+	cmd.Dir = projectName // Pastikan perintah dijalankan di dalam direktori proyek baru
 	if output, err := cmd.CombinedOutput(); err != nil {
-		log.Fatalf("Failed to run 'wire': %v\nOutput:\n%s", err, string(output))
+		log.Fatalf("Failed to run 'go generate': %v\nOutput:\n%s", err, string(output))
 	}
 	fmt.Println("Code generation complete.")
 }
