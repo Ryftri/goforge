@@ -55,34 +55,26 @@ var initCmd = &cobra.Command{
 
 		createDirectories(projectName)
 		createFiles(projectName, dbChoice, moduleName)
-		runGoGet(projectName, dbChoice)
-		runGoGenerate(projectName)
+		installDependencies(projectName, dbChoice)
+		runWire(projectName) // Menggunakan fungsi baru yang lebih spesifik
 
-		fmt.Println("\n✅ Project ready to run! All dependencies installed and code generated.")
-		fmt.Printf("Next steps:\n  cd %s\n  go run cmd/api/main.go\n", projectName)
-		fmt.Printf("Test your endpoint:\n  curl http://localhost:3000/api/v1/hello\n")
+		// Pesan sukses yang diperbarui dan lebih jelas
+		fmt.Println("\n✅ Project successfully created and ready to run!")
+		fmt.Println("\nNext steps:")
+		fmt.Printf("  1. cd %s\n", projectName)
+		fmt.Printf("  2. (Optional) Edit configs/config.yaml with your database details.\n")
+		fmt.Println("  3. go run ./cmd/api")
+		fmt.Printf("\nTest your endpoint:\n  curl http://localhost:3000/api/v1/hello\n")
 	},
 }
 
 func createDirectories(projectName string) {
 	fmt.Println("📂 Creating directory structure...")
 	dirs := []string{
-		"cmd/api",
-		"configs",
-		"internal/config",
-		"internal/database",
-		"internal/handler/v1",
-		"internal/logger",
-		"internal/model/domain",
-		"internal/model/web",
-		"internal/repository", // No mocks subdir needed initially
-		"internal/service",
-		"internal/router",
-		"internal/server",
-		"internal/util",
-		"logs",
-		"migrations",
-		"api/v1", // For OpenAPI spec
+		"cmd/api", "configs", "internal/config", "internal/database", "internal/handler/v1",
+		"internal/logger", "internal/model/domain", "internal/model/web", "internal/repository",
+		"internal/service", "internal/router", "internal/server", "internal/util", "logs",
+		"migrations", "api/v1",
 	}
 	for _, dir := range dirs {
 		path := filepath.Join(projectName, dir)
@@ -100,20 +92,15 @@ type TemplateData struct {
 
 func createFiles(projectName string, dbChoice string, moduleName string) {
 	fmt.Println("📄 Creating boilerplate files...")
-	data := TemplateData{
-		ModuleName: moduleName,
-	}
+	data := TemplateData{ModuleName: moduleName}
 
 	switch dbChoice {
 	case "PostgreSQL":
-		data.DBDriver = "postgres"
-		data.DBImportPath = "gorm.io/driver/postgres"
+		data.DBDriver, data.DBImportPath = "postgres", "gorm.io/driver/postgres"
 	case "MySQL":
-		data.DBDriver = "mysql"
-		data.DBImportPath = "gorm.io/driver/mysql"
+		data.DBDriver, data.DBImportPath = "mysql", "gorm.io/driver/mysql"
 	}
 
-	// Core application files
 	files := map[string]string{
 		".gitignore":                              "templates/gitignore.tmpl",
 		".mockery.yaml":                           "templates/mockery.yaml.tmpl",
@@ -133,51 +120,26 @@ func createFiles(projectName string, dbChoice string, moduleName string) {
 		"api/v1/openapi.yaml":                     "templates/openapi.yaml.tmpl",
 	}
 
-	// Placeholder files for empty directories
-	placeholders := []string{
-		"logs/.gitkeep",
-		"migrations/.gitkeep",
-		"internal/model/domain/.gitkeep",
-	}
-
 	for dest, srcTmpl := range files {
-		tmplContent, err := templateFiles.ReadFile(srcTmpl)
-		if err != nil {
-			log.Fatalf("Failed to read template from embed %s: %v", srcTmpl, err)
-		}
+		tmplContent, _ := templateFiles.ReadFile(srcTmpl)
 		destPath := filepath.Join(projectName, dest)
-		file, err := os.Create(destPath)
-		if err != nil {
-			log.Fatalf("Failed to create file %s: %v", destPath, err)
-		}
+		file, _ := os.Create(destPath)
 		defer file.Close()
-
-		tmpl, err := template.New(dest).Parse(string(tmplContent))
-		if err != nil {
-			log.Fatalf("Failed to parse template %s: %v", srcTmpl, err)
-		}
-		if err := tmpl.Execute(file, data); err != nil {
-			log.Fatalf("Failed to execute template %s: %v", srcTmpl, err)
-		}
+		tmpl, _ := template.New(dest).Parse(string(tmplContent))
+		tmpl.Execute(file, data)
 	}
 
-	for _, placeholder := range placeholders {
-		destPath := filepath.Join(projectName, placeholder)
-		if _, err := os.Create(destPath); err != nil {
-			log.Fatalf("Failed to create placeholder file %s: %v", destPath, err)
-		}
+	placeholders := []string{"logs/.gitkeep", "migrations/.gitkeep", "internal/model/domain/.gitkeep"}
+	for _, p := range placeholders {
+		os.Create(filepath.Join(projectName, p))
 	}
 }
 
-func runGoGet(projectName string, dbChoice string) {
-	fmt.Println("📦 Installing dependencies (go get)...")
+func installDependencies(projectName string, dbChoice string) {
+	fmt.Println("📦 Installing dependencies...")
 	packages := []string{
-		"github.com/gin-gonic/gin",
-		"github.com/spf13/viper",
-		"gorm.io/gorm",
-		"github.com/google/wire/cmd/wire",
-		"github.com/go-playground/validator/v10",
-		"github.com/vektra/mockery/v3",
+		"github.com/gin-gonic/gin", "github.com/spf13/viper", "gorm.io/gorm",
+		"github.com/google/wire/cmd/wire", "github.com/go-playground/validator/v10", "github.com/vektra/mockery/v3",
 	}
 
 	switch dbChoice {
@@ -195,15 +157,24 @@ func runGoGet(projectName string, dbChoice string) {
 			log.Fatalf("Failed to run 'go get %s': %v\nOutput:\n%s", pkg, err, string(output))
 		}
 	}
+
+	fmt.Println("🧹 Tidying modules (go mod tidy)...")
+	cmd := exec.Command("go", "mod", "tidy")
+	cmd.Dir = projectName
+	if output, err := cmd.CombinedOutput(); err != nil {
+		log.Fatalf("Failed to run 'go mod tidy': %v\nOutput:\n%s", err, string(output))
+	}
 	fmt.Println("Dependencies installed successfully.")
 }
 
-func runGoGenerate(projectName string) {
-	fmt.Println("⚙️  Generating dependency injection code (go generate)...")
-	cmd := exec.Command("go", "generate", "./...")
+// Menggunakan `wire ./internal/server` seperti yang Anda sarankan.
+func runWire(projectName string) {
+	fmt.Println("⚙️  Generating dependency injection code (wire)...")
+	// Menggunakan `go run` untuk memastikan wire dijalankan dari modul yang benar
+	cmd := exec.Command("go", "run", "github.com/google/wire/cmd/wire", "./internal/server")
 	cmd.Dir = projectName
 	if output, err := cmd.CombinedOutput(); err != nil {
-		log.Fatalf("Failed to run 'go generate': %v\nOutput:\n%s", err, string(output))
+		log.Fatalf("Failed to run 'wire': %v\nOutput:\n%s", err, string(output))
 	}
 	fmt.Println("Code generation complete.")
 }

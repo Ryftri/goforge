@@ -1,4 +1,3 @@
-//go:generate wire
 //go:build wireinject
 // +build wireinject
 
@@ -24,9 +23,6 @@ var helloSet = wire.NewSet(
 // Note: The return signature is changed to *gin.Engine because no providers return an error.
 func InitializeAPI(cfg config.Config) *gin.Engine {
 	wire.Build(
-		// Basic dependencies
-		gin.Default,
-
 		// Hello World module set
 		helloSet,
 
